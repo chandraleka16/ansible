@@ -1,0 +1,11 @@
+- name: copying file for production env
+  copy:
+    src: /tmp/answer.txt
+    dest: /var/tmp/answer.txt
+  tags: nodegroup1
+
+- name: copying file for backup env
+  copy:
+    src: /tmp/answer.txt
+    dest: /var/tmp/answer2.txt
+  tags: nodegroup2

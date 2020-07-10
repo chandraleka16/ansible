@@ -1,0 +1,49 @@
+- name: Download source
+  get_url:
+    url: http://repo.mysql.com/mysql-community-release-el7-5.noarch.rpm
+    dest: /opt/mysql
+
+- name: Install package
+  yum:
+    name: /opt/mysql/mysql-community-release-el7-5.noarch.rpm
+    state: present
+- name: Install MySQL
+  yum: name=mysql-server state=installed
+
+
+- name: Gather package facts
+  package_facts:
+    manager: rpm
+
+- name: Debug if package is not installed
+  debug:
+    msg: 'Installation Failed'
+  when: '"mysqld" not in ansible_facts.packages'
+
+- name: Start service if package is present
+ debug:
+  msg: 'Installation Successful'
+  service: 
+    name: mysqld
+    state: started 
+    enabled: yes
+ when: '"mysqld" in ansible_facts.packages'
+
+
+ - name: Gather Service facts
+  service_facts:
+  register: services_state
+
+- name: Debug if service is started
+  debug:
+    msg: 'Service started'
+    #var: ansible_facts.services['mysqld.service']['state']
+  when: ansible_facts.services['mysqld.service']['state'] == 'started'
+
+- name: Debug if service is not started and package is not installed
+  debug:
+    msg: 'Playbook was unsuccessful '
+    #var: ansible_facts.services['mysqld.service']['state']
+  when: 
+    - ansible_facts.services['mysqld.service']['state'] == 'started'
+    - "mysqld" not in ansible_facts.packages
