@@ -1,0 +1,7 @@
+
+ans_host1 ansible_host=10.50.3.162 ansible_ssh_user=linux ansible_ssh_private_key_file=~/ac-key-pair.pem
+ans_host2 ansible_host=10.50.3.168 ansible_ssh_user=linux ansible_ssh_private_key_file=~/ac-key-pair.pem
+
+[ans_servers]
+ans_host1
+ans_host2

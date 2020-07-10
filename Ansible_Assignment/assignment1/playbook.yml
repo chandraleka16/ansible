@@ -1,0 +1,91 @@
+
+- name: LAMP INSTALLTION ON HOSTS
+  hosts: ans_servers
+  become: true
+  tasks: 
+    - yum: name={{ item }} state=present
+      with_items:
+        - git
+        - httpd
+        - php
+        - php-mysql
+      when: ansible_os_family == 'RedHat'
+    - apt: name={{ item }} state=present
+      with_items:
+        - git
+        - apache2
+        - php
+        - libapache2-mod-php
+        - mysql-server
+      when: ansible_os_family == 'Debian'
+    
+- name: LAMP SERVICE ON HOSTS
+  hosts: ans_servers
+  become: true
+  tasks:
+    - pause:
+        prompt: "Enter the choice of state of httpd service (started/stopped): "
+        echo: yes
+      register: httpd_state
+    - service:
+        name: apache2
+        state: "{{ httpd_state }}"
+
+    - pause:
+        prompt: "Enter the choice of state of mysqld service (started/stopped): "
+        echo: yes
+      register: mysqld_state
+    - service:
+        name: mysqld
+        state: "{{ mysqld_state }}"
+        enabled: true
+      when: 
+        - ansible_os_family == 'RedHat'
+
+    - pause:
+        prompt: "Enter the choice of state of apache2 service (started/stopped): "
+        echo: yes
+      register: apache2_state
+    - service:
+        name: apache2
+        state: "{{ apache2_state }}"
+    
+    - pause:
+        prompt: "Enter the choice of state of mysql service (started/stopped): "
+        echo: yes
+      register: mysql_state
+    - service:
+        name: mysql
+        state: "{{ mysql_state }}"
+        enabled: true
+      when: 
+        - ansible_os_family == 'Debian'
+
+- name: PHP APPLICATION DEPLOYMENT ON HOSTS
+  hosts: ans_servers
+  become: true
+  tasks:
+    - git:
+        repo: https://github.com/chandraleka16/srf.git
+        dest: /var/www/html/srf
+        mode: 0664
+        clone: true
+        update: true
+
+    - copy: src=db_user.sql dest=/tmp/dump.sql
+
+    - shell: cat /tmp/dump.sql | mysql
+
+- name: STATUS OF SERVICES ON HOSTS
+  hosts: ans_servers
+  become: true
+  tasks:
+    - name: Display service facts
+      service_facts:
+        register: services_state
+    - name: Debug
+      debug:
+      var: services_state
+    
+
+
